@@ -62,10 +62,12 @@ cfg_if::cfg_if! {
         fn compress(state: &mut [u32; 8], blocks: &[[u8; 64]]) {
             cfg_if::cfg_if! {
                 if #[cfg(any(target_arch = "x86", target_arch = "x86_64"))] {
-                    if shani_cpuid::get() {
-                        // SAFETY: we checked that required target features are available
-                        return unsafe { x86_sha::compress(state, blocks) };
-                    }
+                    // SGX: CPUID is not allowed inside an enclave, so skip the SHA-NI
+                    // runtime detection and always use the software implementation.
+                    // if shani_cpuid::get() {
+                    //     // SAFETY: we checked that required target features are available
+                    //     return unsafe { x86_sha::compress(state, blocks) };
+                    // }
                 } else if #[cfg(target_arch = "aarch64")] {
                     if sha2_hwcap::get() {
                         // SAFETY: we checked that `sha2` target feature is available
